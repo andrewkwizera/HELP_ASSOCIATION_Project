@@ -4,7 +4,6 @@ const mongoose = require('mongoose');
 const TransactionSchema = new mongoose.Schema({
     accountNumber:{
         type:String,
-        
     },
     amount:{
         type:Number,
@@ -17,7 +16,10 @@ const TransactionSchema = new mongoose.Schema({
     description: {
         type:String,
     },
-    
+    txnType: {
+        type:String,
+        enum: ['DR','CR']
+    },
 },
 {timestamps:true}
 );

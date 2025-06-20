@@ -1,6 +1,6 @@
 import {useState} from 'react'
 import Layout from "../components/Layout";
-
+import axios from 'axios';
 const Deposit = () => {
 
     const [state,setState] = useState({
@@ -18,12 +18,18 @@ const Deposit = () => {
 
     const handleChange = (name)=>(e)=>{
         //spread the whole state, capture the event values, ovrride others
-        setState({...state,[name]:e.target.value,success:'',error:'',buttonText:'Deposit'})
+        setState({...state,[name]:e.target.value,success:'',error:'',buttonText:'Depositing'})
     }
 
     const handleSubmit = (e)=>{
         //
         e.preventDefault();
+        axios.
+        patch(`http://localhost:8000/api/deposit/6854359f1171b045c50ce40c`,{
+            accountNumber,amount,date,description
+        })
+        .then(response => console.log(response))
+        .catch(error => console.log(error))
         console.table({accountNumber,amount,date,description})
 
     }

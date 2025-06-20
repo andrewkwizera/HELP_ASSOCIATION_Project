@@ -18,7 +18,6 @@ app.use(bodyParser.json())
 app.use('/api',accountRouter);
 app.use('/api',transactionRouter);
 
-
 // app.use(cors())
 const port = process.env.PORT
 

@@ -4,6 +4,6 @@ const {withdraw,getAllTransactions, deposit} = require('../controllers/transacti
 const router = express.Router();
 
 router.route('/transaction').get(getAllTransactions)
-router.route('/deposit/:id').patch(deposit)
-router.route('/withdraw/:id').patch(withdraw)
+router.route('/deposit/:accountNumber').patch(deposit)
+router.route('/withdraw/:accountNumber').patch(withdraw)
 module.exports = router

@@ -1,10 +1,11 @@
 import {useState} from 'react'
 import Layout from "../components/Layout";
+import axios from 'axios';
 
 const Withdraw = () => {
 
     const [state,setState] = useState({
-        account:'',
+        accountNumber:'',
         amount:'',
         date:'',
         description:'',
@@ -13,21 +14,26 @@ const Withdraw = () => {
         buttonText:'Withdraw'
     });
 
-    const {account,amount,date,description,success,error,buttonText} = state;
+    const {accountNumber,amount,date,description,success,error,buttonText} = state;
 
     const handleChange = (name)=>(e)=>{
-        setState({...state,[name]:e.target.value,success:'',error:'',buttonText:'Withdraw'})
+        setState({...state,[name]:e.target.value,success:'',error:'',buttonText:'Withdrawing'})
     }
 
     const handleSubmit = (e)=>{
         e.preventDefault();
-        console.table({account,amount,date,description})
+        axios.
+        patch(`http://localhost:8000/api/withdraw/6854359f1171b045c50ce40c`,{
+            accountNumber,amount,date,description
+        })
+        .then(response => console.log(response))
+        .catch(error => console.log(error))
     }
 
     const makeWithdraw = () => (
         <form onSubmit={handleSubmit}>
            <div className="form-group">
-            <input value={account} onChange={handleChange('account')} type="text" className="form-control" placeholder="Enter account number"/>
+            <input value={accountNumber} onChange={handleChange('accountNumber')} type="text" className="form-control" placeholder="Enter account number"/>
            </div>
            <div className="form-group">
             <input value={amount} onChange={handleChange('amount')} type="number" className="form-control" placeholder="Enter amount"/>
