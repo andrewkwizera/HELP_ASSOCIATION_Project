@@ -1,37 +1,20 @@
-import React from "react"
-import Head from "next/head"
-import Link from "next/link"
-import Router from "next/router"
-import NProgress from "nprogress"
+import Link from 'next/link';
 
-Router.onRouteChangeStart = url => NProgress.start();
-Router.onRouteChangeComplete = url => NProgress.done();
-Router.onRouteChangeError = url => NProgress.done();
-const Layout = props =>{
-    const head = () => (
-        <React.Fragment>
-            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossOrigin="anonymous"></link>
-            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.css"></link>
-        </React.Fragment>
-        
-    )
-    const nav = () => (
-        <ul className="nav justify-content-center nav-tabs bg-light">
-            <li className="nav-item">
-                <Link href="/" className="nav-link text-dark">Home</Link>
-                </li>
-                <li className="nav-item">
-                <Link href="/account" className="nav-link text-dark">Create Account</Link>
-                </li>
-                <li className="nav-item">
-                <Link href="/deposit" className="nav-link text-dark">Deposit</Link>
-                </li>
-                <li className="nav-item">
-                <Link href="/withdraw" className="nav-link text-dark">Withdraw</Link>
-                </li>
-        </ul>
-    );
-    return <React.Fragment>{head()} {nav()} <div className="container pt-5 pb-5">{props.children}</div></React.Fragment>;
-};
-
-export default Layout;
+export default function Layout({ children }) {
+  return (
+    <div className="min-h-screen bg-gray-100 text-gray-900 font-sans">
+      <nav className="bg-gray-800 text-white p-4 shadow-md">
+        <div className="max-w-6xl mx-auto flex gap-6 items-center">
+          <Link href="/" className="hover:text-yellow-300 font-semibold flex items-center gap-1">🏠 Home</Link>
+          <Link href="/account" className="hover:text-yellow-300 font-semibold flex items-center gap-1">🆕 Create Account</Link>
+          <Link href="/deposit" className="hover:text-yellow-300 font-semibold flex items-center gap-1">💰 Deposit</Link>
+          <Link href="/withdraw" className="hover:text-yellow-300 font-semibold flex items-center gap-1">🏧 Withdraw</Link>
+          <Link href="/loans" className="hover:text-yellow-300 font-semibold flex items-center gap-1">💳 Loans</Link>
+        </div>
+      </nav>
+      <main className="max-w-4xl mx-auto p-6 mt-6 bg-white rounded shadow">
+        {children}
+      </main>
+    </div>
+  );
+}

@@ -1,66 +1,96 @@
-import {useState} from 'react'
+"use client";
+import { useState } from "react";
 import Layout from "../components/Layout";
-import axios from 'axios';
+import api from "../utils/axios";
 
-const Withdraw = () => {
-
-    const [state,setState] = useState({
-        accountNumber:'',
-        amount:'',
-        date:'',
-        description:'',
-        success:'',
-        error:'',
-        buttonText:'Withdraw'
-    });
-
-    const {accountNumber,amount,date,description,success,error,buttonText} = state;
-
-    const handleChange = (name)=>(e)=>{
-        setState({...state,[name]:e.target.value,success:'',error:'',buttonText:'Withdrawing'})
+export default function Withdraw() {
+  const [accountId, setAccountId] = useState("");
+  const [amount, setAmount] = useState("");
+  const [message, setMessage] = useState("");
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [accountName, setAccountName] = useState("");
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await api.get(`/account/${accountId}`);
+      const account = res.data.data;
+      setAccountName(`${account.firstName} ${account.lastName}`);
+      setShowConfirm(true);
+    } catch (err) {
+      setMessage("❌ Failed to fetch account details");
     }
+  };
 
-    const handleSubmit = (e)=>{
-        e.preventDefault();
-        axios.
-        patch(`http://localhost:8000/api/withdraw/111234562`,{
-            accountNumber,amount,date,description
-        })
-        .then(response => console.log(response))
-        .catch(error => console.log(error))
+  const handleConfirmWithdraw = async () => {
+    setShowConfirm(false);
+    setMessage("");
+
+    try {
+      const res = await api.post(`/withdraw/${accountId}`, { amount: Number(amount) });
+      const updated = res.data.data;
+      setMessage(`✅ Withdraw of ${amount} to ${updated.firstName} ${updated.lastName} was successful. New balance: ${updated.balance}`);
+      setAmount("");
+      setAccountId("");
+    } catch (err) {
+      setMessage(`❌ ${err.response?.data?.message || "Withdraw failed"}`);
     }
+  };
 
-    const makeWithdraw = () => (
-        <form onSubmit={handleSubmit}>
-           <div className="form-group">
-            <input value={accountNumber} onChange={handleChange('accountNumber')} type="text" className="form-control" placeholder="Enter account number"/>
-           </div>
-           <div className="form-group">
-            <input value={amount} onChange={handleChange('amount')} type="number" className="form-control" placeholder="Enter amount"/>
-           </div>
-           <div className="form-group">
-            <input value={date} onChange={handleChange('date')} type="date" className="form-control"/>
-           </div>
-           <div className="form-group">
-            <input value={description} onChange={handleChange('description')} type="text" className="form-control" placeholder="Enter description"/>
-           </div>
-           <div className="form-group">
-            <button className="btn btn-outline-info">{buttonText}</button>
-           </div>
+  return (
+    <Layout>
+      <div className="p-6 max-w-md mx-auto">
+        <h1 className="text-xl font-bold mb-4">💰 Withdraw From Account</h1>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <input
+            type="text"
+            placeholder="Account Number"
+            value={accountId}
+            onChange={(e) => setAccountId(e.target.value)}
+            className="border p-2 w-full rounded"
+            required
+          />
+          <input
+            type="number"
+            placeholder="Amount"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            className="border p-2 w-full rounded"
+            required
+          />
+          <button
+            type="submit"
+            className="bg-green-600 text-white px-4 py-2 rounded hover:opacity-90"
+          >
+            Withdraw
+          </button>
         </form>
-    )
+        {message && <p className="mt-4 text-sm">{message}</p>}
 
-    return (
-        <Layout>
-            <div className="col-md-6 offset-md-3">
-            <h1>Withdraw amount</h1>
-            {makeWithdraw()}
-            <br/>
-            {JSON.stringify(state)}
-            <hr/>
+        {showConfirm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg shadow-lg p-6 w-96">
+              <h2 className="text-lg font-semibold mb-4">Confirm Withdraw</h2>
+              <p className="mb-6">
+                You are going to withdraw <strong>{amount}</strong> to account <strong>{accountName}</strong> (ID: <strong>{accountId}</strong>).
+              </p>
+              <div className="flex justify-end gap-4">
+                <button
+                  className="bg-gray-300 text-black px-4 py-2 rounded"
+                  onClick={() => setShowConfirm(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="bg-green-600 text-white px-4 py-2 rounded"
+                  onClick={handleConfirmWithdraw}
+                >
+                  Confirm
+                </button>
+              </div>
             </div>
-            
-        </Layout>
-    )
-    }
-export default Withdraw;
+          </div>
+        )}
+      </div>
+    </Layout>
+  );
+}

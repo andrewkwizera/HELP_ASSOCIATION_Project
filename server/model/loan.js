@@ -8,10 +8,7 @@ const LoanSchema = new mongoose.Schema({
         type:Number,
         required:true,
     },
-    date:{
-        type:Date,
-        required:true,
-    },
+    date:{ type: Date, default: Date.now },
     description: {
         type:String,
     },

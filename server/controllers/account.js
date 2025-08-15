@@ -1,5 +1,6 @@
 const Account = require('../model/account');
 
+// Create new account.
 const createAccount = async (req, res) => {
     try {
         const existingAccount = await Account.findOne({ accountNumber: req.body.accountNumber });
@@ -18,8 +19,6 @@ const createAccount = async (req, res) => {
             success: true,
             data: account
         });
-
-        console.log("New Account Created:", account);
     } catch (error) {
         res.status(400).json({
             success: false,
@@ -29,6 +28,7 @@ const createAccount = async (req, res) => {
     }
 }
 
+// Get account by account Number
 const getAccountByNumber = async (req, res) => {
     try {
         const account = await Account.findOne({ accountNumber: req.params.accountNumber });
@@ -53,7 +53,7 @@ const getAccountByNumber = async (req, res) => {
     }
 };
 
-
+// Get all Accounts
 const getAllAccounts = async (req, res) => {
     const accounts = await Account.find({});
     res.status(200).json({
@@ -62,6 +62,34 @@ const getAllAccounts = async (req, res) => {
     })
 }
 
-// Create a function for requesting a loan.
+// Create a function for amending accounts.
 
-module.exports = { createAccount, getAllAccounts, getAccountByNumber }
+const updateAccount = async (req, res) => {
+    try {
+        const account = await Account.findOne({accountNumber:req.params.accountNumber})
+        if (!account){
+            res.status(401).json({
+                success:false,
+                message:"Account not found"
+            })
+        }else {
+            account = await Account.findOneAndUpdate( req.params.accountNumber, req.body,{
+                new: true
+            })
+            res.status(200).json({
+                success:true,
+                message:"Account updated sucessfully",
+                data: account
+            })
+        }
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
+    }
+}
+
+module.exports = { createAccount, getAllAccounts, getAccountByNumber,updateAccount }

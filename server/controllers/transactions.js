@@ -3,7 +3,7 @@ const Account = require('../model/account')
 
 const deposit = async (req, res) => {
     try {
-        const act = await Account.findOne({accountNumber: req.params.accountNumber});
+        const act = await Account.findOne({ accountNumber: req.params.accountNumber });
 
         if (!act) {
             return res.status(404).json({
@@ -12,19 +12,19 @@ const deposit = async (req, res) => {
             });
         }
 
-        const amount = Number(act.balance) + Number(req.body.amount);
-        const account = await Account.findOneAndUpdate({accountNumber:req.params.accountNumber},{ balance: amount }, { new: true })
-
+        act.balance = Number(act.balance) + Number(req.body.amount);
+        await act.save();
         // Create and save the transaction
-        const transaction = new Transaction({
-            ...req.body,
-            txnType: 'CR'
+        const txn = new Transaction({
+            accountId: act.accountNumber,
+            amount: req.body.amount,
+            txnType: "CR",
+            narration: "Deposit",
         });
-        await transaction.save();
-
+        await txn.save();
         res.status(200).json({
             success: true,
-            data: account
+            data: act
         });
 
     } catch (error) {
@@ -37,17 +37,17 @@ const deposit = async (req, res) => {
 }
 
 
-const getAllTransactions = async (req,res) => {
+const getAllTransactions = async (req, res) => {
     const transactions = await Transaction.find({});
     res.status(200).json({
-        success:true,
-        data:transactions
+        success: true,
+        data: transactions
     })
 }
 
 const withdraw = async (req, res) => {
     try {
-        const act = await Account.findOne({accountNumber:req.params.accountNumber});
+        const act = await Account.findOne({ accountNumber: req.params.accountNumber });
 
         if (!act) {
             return res.status(404).json({
@@ -63,21 +63,21 @@ const withdraw = async (req, res) => {
             });
         }
 
-        const amount = Number(act.balance) - Number(req.body.amount);
+        act.balance = Number(act.balance) - Number(req.body.amount);
 
-        // const account = await Account.findByIdAndUpdate(req.params.id, { balance: amount }, { new: true });
-        const account = await Account.findOneAndUpdate({accountNumber:req.params.accountNumber},{balance:amount},{new:true})
-
+        await act.save()
         // Create and save the transaction
-        const transaction = new Transaction({
-            ...req.body,
-            txnType: 'DR'
+        const txn = new Transaction({
+            accountId: act.accountNumber,
+            amount: req.body.amount,
+            txnType: "CR",
+            narration: "Deposit",
         });
-        await transaction.save();
+        await txn.save();
 
         res.status(200).json({
             success: true,
-            data: account
+            data: act
         });
 
     } catch (error) {
@@ -89,5 +89,61 @@ const withdraw = async (req, res) => {
     }
 }
 
+const bulkDeposit = async (req, res) => {
+  const { deposits } = req.body; // Expecting [{ accountNumber, amount }, ...]
 
-module.exports = {getAllTransactions,deposit,withdraw}
+  if (!Array.isArray(deposits)) {
+    return res.status(400).json({ message: 'Invalid input format' });
+  }
+
+  let successCount = 0;
+  let failureCount = 0;
+  const failed = [];
+
+  for (const item of deposits) {
+    try {
+      const { accountNumber, amount } = item;
+      const numericAmount = Number(amount);
+
+      if (!accountNumber || isNaN(numericAmount) || numericAmount <= 0) {
+        failureCount++;
+        failed.push({ ...item, reason: 'Invalid data' });
+        continue;
+      }
+
+      const account = await Account.findOne({ accountNumber });
+
+      if (!account) {
+        failureCount++;
+        failed.push({ ...item, reason: 'Account not found' });
+        continue;
+      }
+
+      account.balance += numericAmount;
+      await account.save();
+
+      const txn = new Transaction({
+        accountId: account._id,
+        amount: numericAmount,
+        txnType: 'CR',
+        narration: 'Bulk Deposit',
+      });
+
+      await txn.save();
+      successCount++;
+    } catch (err) {
+      failureCount++;
+      failed.push({ ...item, reason: 'Server error' });
+    }
+  }
+
+  res.status(200).json({
+    message: 'Bulk deposit processing complete',
+    successCount,
+    failureCount,
+    failed,
+  });
+}
+
+
+module.exports = { getAllTransactions, deposit, withdraw, bulkDeposit }
